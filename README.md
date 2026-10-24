@@ -35,10 +35,13 @@ This project explores rule-based automation, file system operations, and the des
 ```text
 Automated_Folder_Management/
 ├── Notes/
+│   └── DevPlan.md
 ├── src/
-|    
 │   └── main/
 │       └── java/
+│           ├── Classes/
+│           │   └── FileInfo.java
+│           └── Main.java
 ├── .gitignore
 └── README.md
 ```
