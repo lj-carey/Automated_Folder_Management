@@ -12,7 +12,7 @@ public class Main {
 //Classes, Functions, Rules
     //Classes: FileInfo, Rule
     //Functions: GetPath(), GetPaths(), ScanFolders(), addRule()
-    //Rules (defined in Main): <14 Main, 14-30 Archived, >=31 DeleteCheck, only checks 01_Main, 02_Archived, 03_DeleteCheck.
+    //Rules (defined in Main): <14 Main, 14-30 Archived, 31-999 DeleteCheck, only checks 01_Main, 02_Archived, 03_DeleteCheck.
 
     public static void main(String[] args) throws IOException
     {
