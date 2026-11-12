@@ -3,6 +3,7 @@ package Classes;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -10,6 +11,8 @@ import java.time.temporal.ChronoUnit;
 public class FileInfo {
     //will store the file path, either the access & modification date whichever is most recent, is a directory
     private final Path path;
+    private final FileTime lastAccessed;
+    private final FileTime lastModified;
     private final FileTime lastActivity;
     private final boolean isDirectory;
 
@@ -24,19 +27,27 @@ public class FileInfo {
                     FileTime lastModified, boolean directory) {
         this.path = path;
         this.isDirectory = directory;
+        this.lastAccessed = lastAccessed;
+        this.lastModified = lastModified;
         if(lastAccessed.compareTo(lastModified) > 0)
         {
             this.lastActivity = lastAccessed;
         }
         else
-        {
+       {
             this.lastActivity = lastModified;
-        }
+       }
     }
 
     // === Getters === //
     public Path getPath(){
         return path;
+    }
+    public FileTime getLastAccessed(){
+        return lastAccessed;
+    }
+    public FileTime getLastModified(){
+        return lastModified;
     }
     public FileTime getLastActivity(){
         return lastActivity;
@@ -52,22 +63,15 @@ public class FileInfo {
         return activityString;
     }
 
-    /**
-     * Uses the activity date and dates from today to compare and return which parent folder the file should be moved to.
-     * Creates instant data types to compare dates, one with minus 15 and one with minus 31.
-     * @return the name of the destination path- 01_Main, 02_Archived or 03_DeleteCheck
-     */
-    public String getDestination(){
-        Instant todayMinus15 = Instant.now().minus(15, ChronoUnit.DAYS);
-        Instant todayMinus31 = Instant.now().minus(31, ChronoUnit.DAYS);
-        if(this.getLastActivity().toInstant().isAfter(todayMinus15)) {
-            return "01_Main";
-        }
-        else if(this.getLastActivity().toInstant().isBefore(todayMinus31)) {
-            return "03_DeleteCheck";
-        }
-        else { //between 14 and 30 (inclusive)
-            return "02_Archived";
-        }
+    //Get the activity as days from today (long)
+    public long getDaysSinceActivity(){
+        LocalDate today = LocalDate.now(); //today's date
+        LocalDate activityDate = lastActivity.toInstant()
+                                    .atZone(ZoneId.systemDefault())
+                                    .toLocalDate();
+        //Get the difference using ChronoUnit DAYS
+        long activityInt = ChronoUnit.DAYS.between(activityDate, today);
+        return activityInt;
     }
+
 }
