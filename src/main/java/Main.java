@@ -11,8 +11,9 @@ import java.util.*;
 public class Main {
 //Classes, Functions, Rules
     //Classes: FileInfo, Rule
-    //Functions: GetPath(), GetPaths(), ScanFolders(), addRule()
-    //Rules (defined in Main): <14 Main, 14-30 Archived, 31-999 DeleteCheck, only checks 01_Main, 02_Archived, 03_DeleteCheck.
+    //Functions: GetPath(), GetPaths(), getDestinationPath(), ScanPaths(), addRule()
+    //Rules (defined in Main): <14 Main, 14-30 Archived, 31-999 DeleteCheck,
+    // only checks 01_Main, 02_Archived, 03_DeleteCheck. Due to hard-coded in GetPaths().
 
     public static void main(String[] args) throws IOException
     {
@@ -23,7 +24,7 @@ public class Main {
         //call getPaths to get the paths to check
         List<Path> mainPaths = getPaths(userPath);
         //get the folders in the main paths to check and move
-        List<Path> paths = scanFolders(mainPaths);
+        List<Path> paths = scanPaths(mainPaths, 3);
 
         //Rules
         List<Rule> RuleEngine = new ArrayList<>();
@@ -33,47 +34,55 @@ public class Main {
 
 
         //for each path get the fileInfo and add to list
-        for(Path p: paths)
-        {
-            try
-            {
+        for(Path p: paths) {
+            try {
                 BasicFileAttributes f = Files.readAttributes(p, BasicFileAttributes.class);
                 FileInfo info = new FileInfo(p, f.lastAccessTime(), f.lastModifiedTime(), f.isDirectory());
                 fileInfoList.add(info);
             }
-            catch (IOException e) //if errors log it
-            {
+            //if errors log it
+            catch (IOException e) { 
                 Path errorPath = userPath.resolve("00_Logs").resolve("ErrorWithPath.txt");
-                String errorString = "Skipped file path: " + p + "\n";
+                String errorString = "Skipped file path: " + p + "  Due to: "+ e.getMessage() + "\n";
                 Files.writeString(errorPath, errorString, StandardOpenOption.CREATE,
                                     StandardOpenOption.APPEND);
             }
         }
         //for each file move if necessary and log
-        for (FileInfo info : fileInfoList)
-        {
+        for (FileInfo info : fileInfoList) {
             Path des = null;
             //get active rule
-            for (Rule rule : RuleEngine)
-            {
-                if(info.getDaysSinceActivity() >= rule.getMinDays() &&
-                        info.getDaysSinceActivity() <= rule.getMaxDays())
-                {
+            for (Rule rule : RuleEngine) {
+                if (info.getDaysSinceActivity() >= rule.getMinDays() &&
+                        info.getDaysSinceActivity() <= rule.getMaxDays()) {
                     des = rule.getParentDestination();
                 }
             }
             //check if folder needs moving
-            if(des == null)
-            {
-                throw new IllegalArgumentException(
-                        "No active rule."
-                );
+            if(des == null) {
+                throw new IllegalArgumentException("No active rule.");
             }
-            else if(!info.getPath().getParent().equals(des))
-            {
+            //check current path doesn't start with des
+            else if(!info.getPath().startsWith(des)) {
                 //make path for destination
-                Path fname = info.getPath().getFileName();
-                Path destination = des.resolve(fname);
+                Path destination = getDestinationPath(info, userPath, des);
+                //check if destination already exists just in case
+                if (Files.exists(destination)) {
+                    //log it in a new log file
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy MM dd");
+                    Instant today = Instant.now();
+                    String dateString = today.atZone(ZoneId.systemDefault()).format(formatter) + " PathExists.txt";
+                    Path pathExistsPath = userPath.resolve("00_Logs").resolve(dateString);
+                    String pathExistsLog = "The destination path: " + destination + "  Already exists " +
+                            "- unable to move item.";
+
+                    Files.writeString(pathExistsPath, pathExistsLog, StandardOpenOption.CREATE,
+                            StandardOpenOption.APPEND);
+                    //continue after log so other paths checked
+                    continue;
+                }
+                //create any missing directories
+                Files.createDirectories(destination.getParent());
                 //move path and set lastModifiedTime and lastAccessed
                 Files.move(info.getPath(), destination);
                 Files.setLastModifiedTime(destination, info.getLastModified());
@@ -83,7 +92,7 @@ public class Main {
                                 + " | Moved to: " + destination.toString()
                                 + " | Last accessed/modified: " + info.getActivityString() + "\n";
                 //make a file with today's date as part of path then append the log for the move
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MM yyyy");
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy MM dd");
                 Instant today = Instant.now();
                 String logString = today.atZone(ZoneId.systemDefault()).format(formatter) + " FolderManager.txt";
                 Path logPath = userPath.resolve("00_Logs").resolve(logString);
@@ -98,7 +107,7 @@ public class Main {
      * Get the user's Documents path.
      * @return Path for user
      */
-    public static Path getPath()
+    private static Path getPath()
     {
         return Path.of(System.getProperty("user.home")).resolve("Documents");
     }
@@ -110,7 +119,7 @@ public class Main {
      * @return List of parent folders to search through
      * @throws IOException
      */
-    public static List<Path> getPaths(Path userPath) throws IOException
+    private static List<Path> getPaths(Path userPath) throws IOException
     {
         List<Path> filePaths = new ArrayList<>();
         try (var paths = Files.list(userPath))
@@ -129,24 +138,73 @@ public class Main {
     }
 
     /**
-     * Get the paths of the children of the parent folders - used in conjunction with getPaths().
+     * Gets the destination path and constructs it.
+     * @param info The FileInfo data of the item
+     * @param userPath The user's path to their documents from getPath()
+     * @param des The destination path from the rule
+     * @return The path to move the item to
+     */
+    private static Path getDestinationPath(FileInfo info, Path userPath, Path des) {
+        Path parentPath = userPath.resolve(des);
+        Path relativePath = userPath.relativize(info.getPath());
+        //ensures that the relative path does not include the old parent folder if move necessary
+        int pathLength = relativePath.getNameCount(); //get the path length
+        relativePath = relativePath.subpath(1,pathLength);
+        Path destination = parentPath.resolve(relativePath);
+        return destination;
+    }
+
+    /**
+     * Recursive method to get the paths of the children of the parent folders - used in conjunction with getPaths().
      * @param Folders The list of folders from getPaths()
+     * @param depth The depth of the paths to check
      * @return A list of the children of each path in the param
      * @throws IOException
      */
-    public static List<Path> scanFolders(List<Path> Folders) throws IOException
+    private static List<Path> scanPaths(List<Path> Folders, int depth) throws IOException
     {
-        List<Path> filePaths = new ArrayList<>();
-        for (Path mainDir : Folders) //for each parent path
+        //initialise allPaths, logDir & errorPath and create/clear previous scan log
+        List<Path> allPaths = new ArrayList<>();
+        Path logDir = getPath().resolve("00_Logs");
+        Files.createDirectories(logDir);
+        Path errorPath = logDir.resolve("ErrorWithPath.txt");
+        Files.writeString(errorPath, "");
+
+        if(depth == 0) //base case
         {
-            try (var paths = Files.list(mainDir)) //try to get contents and add to filePaths
+            return allPaths;
+        }
+        else
+        {
+            for (Path mainDir : Folders) //for each parent path
             {
-                for (Path f : paths.toList()){
-                    filePaths.add(f);
+                try (var paths = Files.list(mainDir)) //try to get contents and add to filePaths
+                {
+                    for (Path f : paths.toList())
+                    {
+                        if(depth == 1 || Files.isRegularFile(f))
+                        {
+                            allPaths.add(f);
+                        }
+                        if (depth > 1 && Files.isDirectory(f))
+                        {
+                            List<Path> subFolders = List.of(f);
+                            allPaths.addAll(scanPaths(subFolders, depth - 1));
+                        }
+                    }
+                }
+                catch (AccessDeniedException e)
+                {
+                    String errorString = "Skipped folder path: " + mainDir
+                            + " | Due to access denied." + System.lineSeparator();
+
+                    Files.writeString(errorPath, errorString,
+                            StandardOpenOption.CREATE,
+                            StandardOpenOption.APPEND);
                 }
             }
         }
-        return filePaths;
+        return allPaths;
     }
 
     /**
@@ -155,7 +213,7 @@ public class Main {
      * @param rules The list of existing rules
      * @param newRule The new rule tovalidate and add
      */
-    public static void addRule(List<Rule> rules, Rule newRule){
+    private static void addRule(List<Rule> rules, Rule newRule){
         //Checks if rules have no overlap in min and max rules and destination is unique then add the rule
         for (Rule existingRule : rules) {
             if (newRule.getMinDays() <= existingRule.getMaxDays() &&
