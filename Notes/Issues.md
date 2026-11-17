@@ -1,10 +1,29 @@
 Issue 01: 
 When a path is moved, the modified date is changed due to the move. 
 This means the next time the system is ran the path has a more recent date than it should and is moved 
-when it should not behaviourally.
+    when it should not behaviourally.
 Condition for solution: No storage used.
 Solution Thoughts: Need to preserve the lastmodified timestamp from before when creating the new path. 
-Research this
+    Research this
 Implemented Solution: Setting the lastModified and lastAccessed attributes of the moved path to the prior data.
-This preserves the last modified time and if modified after the system runs will be updated to ensure behaviour.
+    This preserves the last modified time and if modified after the system runs will be updated to 
+    ensure behaviour.
 
+Issue 02 (when implementing depth):
+Access Denied when scanning folders.
+Solution Thoughts: Error, needs to use catch exception. Log the path without access and state it was skipped.
+Implemented Solution: Catch AccessDeniedException, make a log file ErrorWithPaths.txt, clears before each scan.
+
+Issue 03 (when implementing depth):
+Path already exists when moving items.
+Solution Thoughts: Check if path exists then log and do not move that path. Required a Continue; command.
+Implemented Solution: Check if destination exists, if it does make a new dated log file and log the path,
+    then continue the program so other paths are moved.
+
+Issue 04 (when implementing depth):
+Paths did not keep whole path when moving, meant folders did not persist as they should have, 
+    side effect of above issue.
+Solution Thoughts: Need to research path methods to see if any simplify getting the userPath, the dir to move to
+    and the whole path after the main dir change.
+Implemented Solution: Created a method which uses relativize() to get the difference between the user's path
+    and items path, then removes the old "main" directory, construct the destination path from the two parts.
