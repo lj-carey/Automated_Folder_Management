@@ -1,23 +1,35 @@
 # Automated Folder Management
 
 ## Overview
+A Java-based application that automatically organises files and folders using configurable activity-based rules.
 
-A Java application that uses configurable rules to manage files and folders by automatically moving content into 
-predefined locations, creating a more consistent and maintainable directory structure. 
-This application organises files and folders without deleting any items.
+The application scans directory structures, evaluates filesystem timestamps, and moves items into predefined locations according to their activity. It also provides operational logging, error reporting and a heartbeat monitoring mechanism. 
+It operates directly on the filesystem using Java NIO and maintains the original directory structure when moving items.
+
+It is primarily a backend development project, with no graphical frontend currently planned.
+
+The application is non-destructive: it moves items but does not automatically delete them.
 
 ## Project Status
-
 This project is currently under development. The current development stage and planned features are documented in `devPlan`.
 
-## Why This Project Matters
 
+## Project Objectives
+The project aims to:
+
+- Automate repetitive file and folder organisation.
+- Maintain a consistent directory structure.
+- Use activity-based rules to determine item destinations.
+- Preserve filesystem timestamps when moving items.
+- Avoid automatically deleting user data.
+- Provide logging to track application activity and identify errors.
+- Support recursive scanning of directory structures.
+- Provide visibility into application execution through heartbeat monitoring.
+
+## Why This Project Matters
 File management can involve repetitive tasks that become difficult to maintain as the number of files and directories grows. 
 Automating these tasks through a rule-based system provides a way to make file organisation more consistent and reduce manual effort. 
 The rule-based approach allows varying levels of control over how content is organised, while providing a foundation for future customisation and extension.
-
-This project focuses on backend development with no plans of a frontend.
-
 This project explores rule-based automation, file system operations, and the design of a system that can apply configurable logic to file management.
 
 ### Limitation Note
@@ -30,15 +42,39 @@ Empty folders are intentionally retained to maintain the application's non-destr
 
 
 ## Features
+* Rule-based organisation - Assigns destinations according to inactivity thresholds.
+* Recursive scanning - Searches directory structures up to a configurable depth.
+* File and folder support - Processes both regular files and directories.
+* Activity detection - Uses last-accessed and last-modified timestamps.
+* Timestamp preservation - Restores timestamps following a move.
+* Directory preservation - Retains relative directory structures when moving items.
+* Destination checking - Prevents overwriting existing destinations.
+* Error handling - Records inaccessible paths and skipped items.
+* Heartbeat monitoring - Periodically records that the application is running.
+* Overview logging - Records scan totals and file/directory counts.
+* Non-destructive operation - Does not automatically delete files or folders.
 
-* Rule-based file and folder management.
-* Automated file organisation using defined conditions.
-* A Java implementation of file management logic.
-* Logging to ensure any movement, skipped folders or exceptions due to paths already existing are noted.
-* Does not automatically delete items, reducing the risk of accidental data loss.
+## How It Works
+
+The application follows a sequential execution process.
+
+1. Identifies the user's Documents directory.
+2. Initialises heartbeat monitoring.
+3. Identifies directories to scan.
+4. Recursively scans their contents.
+5. Collects filesystem information for discovered items.
+6. Evaluates each item against the configured rules.
+7. Constructs the appropriate destination path.
+8. Checks whether the destination already exists.
+9. Creates missing parent directories and moves eligible items.
+10. Restores the original filesystem timestamps.
+11. Records movements and operational information as different .log files.
+12. Generates an overview log to show what root documents were scanned and how many paths.
+13. Stops heartbeat monitoring.
+
+The main execution logic is currently managed by `Main.java`.
 
 ## Tech Stack
-
 - Java
   - Java NIO (File and Directory operations)
 - Git
@@ -49,13 +85,14 @@ Empty folders are intentionally retained to maintain the application's non-destr
 ```text
 Automated_Folder_Management/
 ├── Notes/
-│   └── DevPlan.md
+│   ├── DevPlan.md
 │   └── Issues.md
 ├── src/
 │   └── main/
 │       └── java/
 │           ├── Classes/
-│           │   └── FileInfo.java
+│           │   ├── FileInfo.java
+│           │   ├── Heartbeat.java
 │           │   └── Rule.java
 │           └── Main.java
 ├── .gitignore
@@ -64,27 +101,147 @@ Automated_Folder_Management/
 
 ## Key Locations
 
-* **Java source code:** `src/main/java/` — contains the application's Java implementation.
-* **Notes:** `Notes/` — contains project notes and supporting documentation.
-* **Development plan:** `DevPlan` — documents the planned development work for each version.
-* **Project documentation:** `README.md` — provides an overview of the application and instructions for using it.
+- **Java source code:** `src/main/java/` — contains the application's Java implementation.
+- **Classes:**
+  - FileInfo to read the attributes of the paths and set lastActivity.
+  - Heartbeat to periodically record application activity, providing visibility into runtime execution.
+  - Rule to create the rules for the application and dictates movement of paths.
+- **Notes:** `Notes/` — contains project notes and supporting documentation.
+- **Development plan:** `DevPlan` — documents the planned development work for each version.
+- **Project documentation:** `README.md` — provides an overview of the application and instructions for using it.
 
-### Current Rule Implementation
+## Rule Engine
 
+The application uses the `Rule` class to define organisational rules.
+
+Each rule contains:
+
+- A rule name.
+- A destination parent directory.
+- A minimum inactivity threshold.
+- A maximum inactivity threshold.
+  
 The current implementation evaluates folder activity using:
-
 - Last modified date
 - Last accessed date
 
-The most recent activity timestamp is compared against configurable thresholds, which are created using the Rule class.
-Actions are then performed depending on whether the folder falls within or beyond these thresholds.
+The most recent activity timestamp is compared against configurable thresholds, which are created using the `Rule` class.
 
+### Current Rule Implementation
+The current rules defined in `Main.java` are:
+| Rule | Minimum Days | Maximum Days | Destination |
+|---|---:|---:|---|
+| Current | 0 | 13 | `01_Main` |
+| Archived | 14 | 30 | `02_Archived` |
+| Older Items | 31 | 999 | `03_DeleteCheck` |
+
+#### Folder	Purpose
+| Folder | Purpose |
+|---|---|
+| `01_Main` | Contains recently active files and folders. |
+| `02_Archived` | Contains items that have been inactive for longer. |
+| `03_DeleteCheck` | Contains older items that may be suitable for manual review. |
+
+### Rule Validation
+Rules are registered through the `addRule()` method found in `Main.java`.
+
+Before a rule is added, the application checks:
+- Whether its inactivity range overlaps an existing rule.
+- Whether its destination directory is already assigned to another rule.
+
+Overlapping rules and duplicate destinations result in an `IllegalArgumentException`.
+This provides a basic validation mechanism to prevent conflicting organisational rules.
+
+## Heartbeat Monitoring
+
+Heartbeat monitoring is implemented in `Heartbeat.java`.
+
+The heartbeat uses a `ScheduledExecutorService` to execute a background logging task at a fixed interval.
+
+The current configuration uses a five-second interval.
+
+### Heartbeat Messages
+
+The heartbeat log records:
+
+- Application startup.
+- Periodic confirmation that the application is running.
+- Application completion.
+
+The heartbeat is started when the main application begins and stopped in the `finally` block when execution finishes.
+
+This provides basic visibility into whether the application is still executing, particularly during larger directory scans.
+
+Heartbeat monitoring is only active while the application is running.
+
+## Logging
+
+The application uses filesystem-based logging to record its operations.
+
+All logs are stored within:
+
+```text
+Documents/
+└── 00_Logs/
+```
+
+### Log Files
+
+| Log | Purpose |
+|---|---|
+| `Heartbeat.log` | Records application startup, periodic heartbeat messages and completion. |
+| `ErrorWithPath.log` | Records inaccessible paths and scanning errors. |
+| `YYYY MM DD FolderManager.log` | Records successful item movements. |
+| `YYYY MM DD PathExists.log` | Records destination conflicts that prevent movement. |
+| `YYYY MM DD Overview.log` | Records directory scanning information and item counts. |
+
+### Overview Logging
+
+The overview log records:
+- Timestamp of the overview.
+- Number of root directories scanned.
+- Names of the root directories.
+- Total number of discovered items.
+- Number of directories.
+- Number of regular files.
+
+The overview is generated after the movement process. It also includes information about directories that were encountered but skipped during scanning, such as excluded directories or directories where permission was denied. 
+
+#### Example Overview
+Overview @ 2026-11-20 22:28:16
+
+Root paths: 6
+
+path1
+
+path2
+
+path3
+
+...
+
+(Root paths includes skipped paths)
+
+Total items: 41
+
+Folders: 22  |  Files: 19
+
+The overview provides a basic summary of the directories
+encountered and the number of files and folders identified
+during the scan.
 
 ## Requirements
 
-* A compatible Java Development Kit (JDK).
-* Git, if cloning the repository.
-* A Java-compatible IDE or editor, such as IntelliJ IDEA, Eclipse, or Visual Studio Code.
+The project uses Java and Java NIO.
+
+Requirements:
+
+- A compatible Java Development Kit (JDK)
+- Java SDK: `ms-21`.
+- A Java-compatible IDE or editor.
+- Git, if cloning the repository.
+- Access to the Documents directory being processed.
+
 
 ## Getting Started
 
