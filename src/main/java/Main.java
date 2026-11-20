@@ -12,7 +12,7 @@ import java.util.*;
 public class Main {
 //Classes, Functions, Rules
     //Classes: FileInfo, Rule, Heartbeat
-    //Functions: GetPath(), GetPaths(), getDestinationPath(), ScanPaths(), addRule()
+    //Functions: GetPath(), GetPaths(), getDestinationPath(), ScanPaths(), addRule(), overviewLog()
     //Rules (defined in Main): <14 Main, 14-30 Archived, 31-999 DeleteCheck,
     // GetPaths() checks all paths (directories) which do not contain "locked" or "logs".
 
@@ -134,7 +134,8 @@ public class Main {
     }
 
     /**
-     * Get the parent folders to search through - main, archived, deleteCheck.
+     * Get the parent folders to search through - only includes directories and
+     * excludes directories containing the words "logs" and "locked".
      * Uses toLowerCase and trim for naming.
      *
      * @param userPath The user's documents path
@@ -257,10 +258,11 @@ public class Main {
         String timestamp = LocalDateTime.now().format(formatterTime);
 
         List<Path> rootPaths = getPaths(userPath);
-        String rootPathsLog = "Root paths scanned: "+ rootPaths.size() + "\n";
+        String rootPathsLog = "Root paths: "+ rootPaths.size() + "\n";
         for (Path path : rootPaths){
             rootPathsLog +=  path + "\n";
         }
+        rootPathsLog += "(Root paths includes skipped paths)\n\n";
         List<Path> paths = scanPaths(rootPaths, 3);
         //get total items scanned and how many Folders and Files
         int totalItems = paths.size();
@@ -275,9 +277,8 @@ public class Main {
         }
         String itemsLog = "Total items: " + totalItems + "\nFolders: " + folderCount
                 + "  |  Files: " + fileCount;
-        String overviewLog = "Overview @ \n" + timestamp + "\n" + rootPathsLog + itemsLog + "\n\n";
-        return overviewLog;
 
+        return "Overview @ " + timestamp + "\n" + rootPathsLog + itemsLog + "\n\n";
     }
 
 }
