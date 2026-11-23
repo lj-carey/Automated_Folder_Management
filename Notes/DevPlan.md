@@ -20,6 +20,10 @@ Overview log - shows how many paths scanned, how many moved, how many directorie
 
 # V4
 Refactor Main.java put likewise methods into a new class to keep code base clean.
+Created Logs and PathManager
 
-# V5
+# V5 
+Testing
+
+# V6
 Deploy (new - make a file explaining this experience).
