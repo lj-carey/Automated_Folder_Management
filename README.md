@@ -93,6 +93,8 @@ Automated_Folder_Management/
 │           ├── Classes/
 │           │   ├── FileInfo.java
 │           │   ├── Heartbeat.java
+│           │   └── Logs.java
+│           │   └── PathManager.java
 │           │   └── Rule.java
 │           └── Main.java
 ├── .gitignore
@@ -259,5 +261,6 @@ Open the repository in a Java-compatible IDE and inspect the source files under 
 Identify the application's entry point and follow the project's existing build and execution configuration.
 
 *Exact build and run commands will be added once the project's build configuration and entry point have been confirmed.*
+
 
 
