@@ -93,10 +93,19 @@ Automated_Folder_Management/
 │           ├── Classes/
 │           │   ├── FileInfo.java
 │           │   ├── Heartbeat.java
-│           │   └── Logs.java
-│           │   └── PathManager.java
+│           │   ├── Logs.java
+│           │   ├── PathManager.java
 │           │   └── Rule.java
 │           └── Main.java
+│   └── test/
+│       └── java/
+│           └── Classes/
+│           │   ├── FileInfoTest.java
+│           │   ├── LogsTest.java
+│           │   ├── PathManagerTest.java
+│           │   └── RuleTest.java
+│           └── MainTest.java
+├── pom.xml
 ├── .gitignore
 └── README.md
 ```
@@ -108,6 +117,15 @@ Automated_Folder_Management/
   - FileInfo to read the attributes of the paths and set lastActivity.
   - Heartbeat to periodically record application activity, providing visibility into runtime execution.
   - Rule to create the rules for the application and dictates movement of paths.
+  - PathManager to manage the scanning of paths and the movement of files and folders.
+  - Logs to manage the logging of the application.
+- **Testing:** `test/` — contains JUnit5 testing for the following files/classes:
+  - FileInfoTest
+  - LogsTest
+  - PathManagerTest
+  - RuleTest
+  - MainTest
+  These tests use temporary directories and do not operate on the user's actual Documents directory.
 - **Notes:** `Notes/` — contains project notes and supporting documentation.
 - **Development plan:** `DevPlan` — documents the planned development work for each version.
 - **Project documentation:** `README.md` — provides an overview of the application and instructions for using it.
@@ -256,11 +274,13 @@ cd Automated_Folder_Management
 
 ### Open the Project
 
-Open the repository in a Java-compatible IDE and inspect the source files under `src/main/java/`.
+Open the repository in a Java-compatible IDE and import it as a Maven project. The project requires JDK 21.
 
-Identify the application's entry point and follow the project's existing build and execution configuration.
+Run the test suite from the repository root with:
 
-*Exact build and run commands will be added once the project's build configuration and entry point have been confirmed.*
+```bash
+mvn test
+```
 
 
 
