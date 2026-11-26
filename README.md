@@ -262,25 +262,6 @@ Requirements:
 - Git, if cloning the repository.
 - Access to the Documents directory being processed.
 
+## Running the Application
 
-## Getting Started
-
-### Clone the Repository
-
-```bash
-git clone https://github.com/lj-carey/Automated_Folder_Management.git
-cd Automated_Folder_Management
-```
-
-### Open the Project
-
-Open the repository in a Java-compatible IDE and import it as a Maven project. The project requires JDK 21.
-
-Run the test suite from the repository root with:
-
-```bash
-mvn test
-```
-
-
-
+In IntelliJ IDEA, select the **Main** run configuration and click **Run** to launch `Main.java`. The project also includes JUnit tests; select a test configuration only when you want to run the tests.
