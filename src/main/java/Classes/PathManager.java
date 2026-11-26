@@ -44,7 +44,7 @@ public class PathManager {
         try (var paths = Files.list(userPath)) {
 
             for (Path p : paths.toList()) {
-                if (Files.isDirectory(p)) {
+                if (Files.isDirectory(p)) { //will not add .ini files
                     String name = p.toString().toLowerCase().trim();
                     //get parent folders to check
                     if (!name.contains("locked") && !name.contains("logs")) {
@@ -107,7 +107,7 @@ public class PathManager {
                 {
                     for (Path f : paths.toList()) {
                         if (f.toString().toLowerCase().contains("locked") || f.toString().toLowerCase().contains("logs")
-                                || f.endsWith(".ini")) { //skip paths with locked, logs or .ini in file path
+                                || f.getFileName().toString().toLowerCase().endsWith(".ini")) { //skip paths with locked, logs or .ini in file path
                             continue;
                         }
                         if (depth == 1 || Files.isRegularFile(f)) {

@@ -47,3 +47,24 @@ Exclude any files, only add directories in getPaths and in scanPaths include a c
 if statement including Files.isDirectory and if !name.contains locked or logs in getPaths().
 if statement including f.toString().toLowerCase().contains locked or logs and endsWith .ini
     with a continues; command to skip paths with those conditions.
+
+# Issue 06:
+ScanPaths test failed did not exclude .ini files.
+## Solution Thoughts:
+Check the if statement in scanPaths to ensure it is checking for .ini files and not just .ini, 
+    check that the operators are correct as well.
+## Implemented Solution:
+ScanPaths updated to use .getFileName and .tolowerCase() to ensure .ini files are excluded.
+Or operators used.
+## Separate note:
+createDestinationPath updated to include a safeguard check for destination paths with just one part,
+    for the relative path as using substring(1, pathLength) could cause issues if it is (1,1).
+
+# Issue 07:
+Writing two movements fails, no such file exception, the filename of the path duplicates so it is
+    ...\2026 11 26 Movement.log\2026 11 26 Movement.log\ which is not possible.
+## Solution Thoughts:
+check the writeMovement method to ensure the path is not being duplicated, 
+    check the path construction and ensure it is correct.
+## Implemented Solution:
+Ensured in all write methods that the logPath is not updated and a new Path variable is created.
