@@ -12,6 +12,7 @@ The application is non-destructive: it moves items but does not automatically de
 
 ## Project Status
 **Complete**
+
 This is the first and final stable release of Automated Folder Management. The project is considered complete, and no further development or updates are currently planned.
 
 
@@ -241,23 +242,21 @@ The overview log records:
 The overview is generated after the movement process. It also includes information about directories that were encountered but skipped during scanning, such as excluded directories or directories where permission was denied. 
 
 #### Example Overview
+```
 Overview @ 2026-11-20 22:28:16
 
 Root paths: 6
 
 path1
-
-path2
-
-path3
-
 ...
+path6
 
-(Root paths includes skipped paths)
+(Check ErrorWithPaths.log to see if any paths were skipped)
 
 Total items: 41
 
 Folders: 22  |  Files: 19
+```
 
 The overview provides a basic summary of the directories
 encountered and the number of files and folders identified
