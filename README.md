@@ -6,12 +6,13 @@ A Java-based application that automatically organises files and folders using co
 The application scans directory structures, evaluates filesystem timestamps, and moves items into predefined locations according to their activity. It also provides operational logging, error reporting and a heartbeat monitoring mechanism. 
 It operates directly on the filesystem using Java NIO and maintains the original directory structure when moving items.
 
-It is primarily a backend development project, with no graphical frontend currently planned.
+It is primarily a backend development project, with no graphical frontend included.
 
 The application is non-destructive: it moves items but does not automatically delete them.
 
 ## Project Status
-This project is currently under development. The current development stage and planned features are documented in `devPlan`.
+**Complete**
+This is the first and final stable release of Automated Folder Management. The project is considered complete, and no further development or updates are currently planned.
 
 
 ## Project Objectives
@@ -31,6 +32,9 @@ File management can involve repetitive tasks that become difficult to maintain a
 Automating these tasks through a rule-based system provides a way to make file organisation more consistent and reduce manual effort. 
 The rule-based approach allows varying levels of control over how content is organised, while providing a foundation for future customisation and extension.
 This project explores rule-based automation, file system operations, and the design of a system that can apply configurable logic to file management.
+
+This project was originally created as an opportunity to develop a Java application without a graphical frontend, while automating folder management through file movement.
+It also served as a learning project, providing experience with Java, Java NIO, heartbeat processes and application deployment.
 
 ### Limitation Note
 This application relies on filesystem-provided timestamps to determine file and folder activity. 
@@ -172,6 +176,15 @@ Before a rule is added, the application checks:
 Overlapping rules and duplicate destinations result in an `IllegalArgumentException`.
 This provides a basic validation mechanism to prevent conflicting organisational rules.
 
+### Changing the Organisation Rules
+
+The organisation rules can be modified in `Main.java`.
+
+If you wish to change the inactivity periods or the destination folders, locate the relevant rules in `Main.java` and adjust them as required.
+
+The application must be rebuilt after making changes for them to take effect in the executable JAR.
+
+
 ## Heartbeat Monitoring
 
 Heartbeat monitoring is implemented in `Heartbeat.java`.
@@ -264,4 +277,45 @@ Requirements:
 
 ## Running the Application
 
-In IntelliJ IDEA, select the **Main** run configuration and click **Run** to launch `Main.java`. The project also includes JUnit tests; select a test configuration only when you want to run the tests.
+### Running from .jar
+Download the executable JAR attached to this release.
+
+Java 21 or newer must be installed on your computer.
+
+1. Download `automated-folder-management-1.0.0.jar` from the GitHub release.
+2. Save the JAR somewhere convenient on your computer.
+3. Open Command Prompt or a terminal.
+4. Navigate to the folder containing the downloaded JAR, or open a terminal in that folder.
+5. Run the following command:
+
+```bash
+java -jar automated-folder-management-1.0.0.jar
+```
+
+The application will run automatically and organise files and folders within the user's Documents directory according to the defined rules.
+
+No IDE or Maven installation is required to run the downloaded JAR.
+
+### Building from Source
+
+If you wish to modify the source code or organisation rules, you can build a new executable JAR using Maven.
+
+Requirements:
+- Java Development Kit (JDK) 21 or newer.
+- Maven installed and configured.
+
+From the root directory of the project, run:
+
+```bash
+mvn clean verify
+```
+
+Maven will compile the application, run the tests and package the executable JAR.
+
+The resulting JAR can be found in the `target` directory.
+
+Run the newly built application using:
+
+```bash
+java -jar target/automated-folder-management-1.0.0.jar
+```

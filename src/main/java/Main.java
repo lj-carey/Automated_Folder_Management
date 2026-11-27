@@ -8,7 +8,7 @@ import java.util.*;
 public class Main {
 //Classes, Functions, Rules
     //Classes: FileInfo, Heartbeat, Logs, PathManager, Rule
-    //Functions: addRule()
+    //Functions: addRule(), moveItems()
     //Rules (defined in Main): <14 Main, 14-30 Archived, 31-999 DeleteCheck
 
     public static void main(String[] args) {
