@@ -37,7 +37,7 @@ class MainTest {
         originalUserHome = System.getProperty("user.home");
         System.setProperty("user.home", temporaryHome.toString());
         documents = Files.createDirectories(temporaryHome.resolve("Documents"));
-        Files.createDirectories(documents.resolve("00_logs"));
+        Files.createDirectories(documents.resolve("00_Logs"));
     }
 
     @AfterEach

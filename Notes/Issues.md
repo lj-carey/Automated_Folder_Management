@@ -68,3 +68,16 @@ check the writeMovement method to ensure the path is not being duplicated,
     check the path construction and ensure it is correct.
 ## Implemented Solution:
 Ensured in all write methods that the logPath is not updated and a new Path variable is created.
+
+# Issue 08:
+When using cmd and trying to deploy the application using mvn there were 4 errors with Tests, this meant the build failed.
+This included issues with MainTests with the error path not existing to reset.
+## Solution thoughts:
+Comment out the reset code (causing the error) and run the tests, active debug based on that by testing mvn clean verify and
+    reading the error logs to resolve issues. 
+## Implemented Solution:
+The reset code was commented out and logs was changed to not use a static logPath variable, instead the  
+    getLogPath() method is used. In writeToLog() the parent directory is created to ensure no errors
+    with the path not existing. 
+This resolved issues with the tests and the build was successful.
+

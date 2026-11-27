@@ -40,16 +40,9 @@ class LogsTest {
         originalUserHome = System.getProperty("user.home");
         System.setProperty("user.home", temporaryHome.toString());
         logDirectory = Files.createDirectories(
-                temporaryHome.resolve("Documents").resolve("00_logs"));
+                temporaryHome.resolve("Documents").resolve("00_Logs"));
     }
 
-    //After each test, reset the logPath field in the Logs class to ensure a clean state for subsequent tests
-    @AfterEach
-    void resetLogPath() throws ReflectiveOperationException {
-        var field = Logs.class.getDeclaredField("logPath");
-        field.setAccessible(true);
-        field.set(null, logDirectory);
-    }
     //After testing reset the user home variable
     @AfterAll
     static void restoreUserHome() {

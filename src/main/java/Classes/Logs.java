@@ -16,7 +16,6 @@ public class Logs {
     //needs to include the logs
     //Run details (overview), errors, Folder Manager (what was moved)
 
-    private static Path logPath = getLogPath();
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy MM dd");
     private static final Instant today = Instant.now();
 
@@ -37,7 +36,7 @@ public class Logs {
     public static void writeToOverview() throws Exception {
         String overview = overviewLog();
         String logName = today.atZone(ZoneId.systemDefault()).format(formatter) + " Overview.log";
-        Path overviewPath = logPath.resolve(logName);
+        Path overviewPath = getLogPath().resolve(logName);
         writeToLog(overviewPath, overview);
     }
 
@@ -51,7 +50,7 @@ public class Logs {
     public static void writeFolderMovement(FileInfo info, Path destination) throws IOException {
         String details = FolderMoveDetails(info, destination);
         String logName = today.atZone(ZoneId.systemDefault()).format(formatter) + " Movement.log";
-        Path movementPath = logPath.resolve(logName);
+        Path movementPath = getLogPath().resolve(logName);
         writeToLog(movementPath, details);
     }
 
@@ -84,6 +83,9 @@ public class Logs {
      * @throws IOException if an error occurs while writing to the log file.
      */
     private static void writeToLog(Path path, String log) throws IOException {
+        //create the parent path in case it doesn't exist
+        Files.createDirectories(path.getParent());
+
         Files.writeString(path, log, StandardOpenOption.CREATE,
                 StandardOpenOption.APPEND);
     }
@@ -151,7 +153,7 @@ public class Logs {
      * @return Path to the error log file.
      */
     private static Path getErrorPath() {
-        return logPath.resolve(today.atZone(ZoneId.systemDefault()).format(formatter) + " Errors.log");
+        return getLogPath().resolve(today.atZone(ZoneId.systemDefault()).format(formatter) + " Errors.log");
     }
 
 }
